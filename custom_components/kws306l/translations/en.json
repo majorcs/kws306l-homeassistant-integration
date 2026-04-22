@@ -1,0 +1,49 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Choose connection type",
+        "data": {
+          "protocol": "Protocol"
+        }
+      },
+      "tcp": {
+        "title": "Configure Modbus TCP",
+        "data": {
+          "host": "Host",
+          "port": "Port",
+          "slave_id": "Slave ID",
+          "scan_interval": "Scan interval (seconds)",
+          "name": "Name"
+        }
+      },
+      "serial": {
+        "title": "Configure Modbus RTU",
+        "data": {
+          "serial_port": "Serial port",
+          "slave_id": "Slave ID",
+          "scan_interval": "Scan interval (seconds)",
+          "name": "Name"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the device",
+      "invalid_protocol": "Invalid protocol",
+      "already_configured": "This device is already configured"
+    },
+    "abort": {
+      "already_configured": "This device is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "KWS306L options",
+        "data": {
+          "scan_interval": "Scan interval (seconds)"
+        }
+      }
+    }
+  }
+}

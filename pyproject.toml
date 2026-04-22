@@ -1,0 +1,5 @@
+[tool.pytest.ini_options]
+addopts = "--cov=custom_components.kws306l --cov-report=term-missing --cov-fail-under=90"
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["."]

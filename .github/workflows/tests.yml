@@ -1,0 +1,35 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions: {}
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install test dependencies
+        run: |
+          python -m venv .venv
+          . .venv/bin/activate
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements_test.txt
+
+      - name: Run pytest
+        run: |
+          . .venv/bin/activate
+          pytest -q
+

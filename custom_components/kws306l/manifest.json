@@ -1,0 +1,18 @@
+{
+  "domain": "kws306l",
+  "name": "KWS306L",
+  "codeowners": [
+    "@majorcs"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/majorcs/kws306l-homeassistant-integration",
+  "issue_tracker": "https://github.com/majorcs/kws306l-homeassistant-integration/issues",
+  "iot_class": "local_polling",
+  "loggers": [
+    "pymodbus"
+  ],
+  "requirements": [
+    "pymodbus>=3.8.3,<4.0.0"
+  ],
+  "version": "2026.04.22.1"
+}

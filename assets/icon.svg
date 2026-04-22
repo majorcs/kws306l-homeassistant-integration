@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title>KWS306L energy meter icon</title>
+  <rect width="128" height="128" rx="24" fill="#0f172a"/>
+  <rect x="24" y="18" width="80" height="92" rx="18" fill="#14b8a6"/>
+  <rect x="36" y="30" width="56" height="26" rx="8" fill="#ecfeff"/>
+  <path d="M63 36 50 58h12l-6 20 22-28H66l7-14Z" fill="#0f172a"/>
+  <circle cx="46" cy="82" r="6" fill="#0f172a"/>
+  <circle cx="64" cy="82" r="6" fill="#0f172a"/>
+  <circle cx="82" cy="82" r="6" fill="#0f172a"/>
+  <rect x="42" y="92" width="44" height="6" rx="3" fill="#0f172a"/>
+</svg>
+
