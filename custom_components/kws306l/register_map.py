@@ -69,6 +69,13 @@ def _u32(data: RegisterData, address: int) -> int:
     return (data[address] << 16) | data[address + 1]
 
 
+def _s32(data: RegisterData, address: int) -> int:
+    value = _u32(data, address)
+    if value & 0x8000_0000:
+        return value - 0x1_0000_0000
+    return value
+
+
 def _scaled(value: int, divisor: int, precision: int) -> int | float:
     if divisor == 1:
         return value
@@ -89,6 +96,15 @@ def decode_u32_scaled(address: int, divisor: int, precision: int) -> RegisterDec
 
     def decoder(data: RegisterData) -> int | float:
         return _scaled(_u32(data, address), divisor, precision)
+
+    return decoder
+
+
+def decode_s32_scaled(address: int, divisor: int, precision: int) -> RegisterDecoder:
+    """Decode a signed scaled 32-bit register."""
+
+    def decoder(data: RegisterData) -> int | float:
+        return _scaled(_s32(data, address), divisor, precision)
 
     return decoder
 
@@ -263,7 +279,7 @@ SENSOR_DESCRIPTIONS: tuple[KwsSensorDescription, ...] = (
         native_unit_of_measurement="var",
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=1,
-        decoder=decode_u32_scaled(31, 10, 1),
+        decoder=decode_s32_scaled(31, 10, 1),
     ),
     KwsSensorDescription(
         key="phase_a_reactive_power",
@@ -274,7 +290,7 @@ SENSOR_DESCRIPTIONS: tuple[KwsSensorDescription, ...] = (
         native_unit_of_measurement="var",
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=1,
-        decoder=decode_u32_scaled(33, 10, 1),
+        decoder=decode_s32_scaled(33, 10, 1),
     ),
     KwsSensorDescription(
         key="phase_b_reactive_power",
@@ -285,7 +301,7 @@ SENSOR_DESCRIPTIONS: tuple[KwsSensorDescription, ...] = (
         native_unit_of_measurement="var",
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=1,
-        decoder=decode_u32_scaled(35, 10, 1),
+        decoder=decode_s32_scaled(35, 10, 1),
     ),
     KwsSensorDescription(
         key="phase_c_reactive_power",
@@ -296,7 +312,7 @@ SENSOR_DESCRIPTIONS: tuple[KwsSensorDescription, ...] = (
         native_unit_of_measurement="var",
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=1,
-        decoder=decode_u32_scaled(37, 10, 1),
+        decoder=decode_s32_scaled(37, 10, 1),
     ),
     KwsSensorDescription(
         key="total_apparent_power",

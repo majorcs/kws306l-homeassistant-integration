@@ -15,6 +15,7 @@ from custom_components.kws306l.const import (
     DOMAIN,
     PROTOCOL_TCP,
 )
+from custom_components.kws306l.register_map import SENSOR_DESCRIPTIONS
 
 
 def _sample_registers() -> dict[int, int]:
@@ -108,3 +109,55 @@ async def test_sensor_entities_are_created_and_decoded(hass):
     assert alarm_state.attributes["active_alarms"] == ["overvoltage", "overtemperature"]
     assert alarm_state.attributes["bits"]["overtemperature"] is True
 
+
+async def test_reactive_power_entities_decode_signed_values(hass):
+    """Reactive power registers should be decoded as signed 32-bit values."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Meter",
+        data={
+            CONF_PROTOCOL: PROTOCOL_TCP,
+            CONF_HOST: "192.0.2.21",
+            CONF_PORT: DEFAULT_PORT,
+            CONF_SLAVE_ID: 3,
+            CONF_SCAN_INTERVAL: 30,
+        },
+    )
+    entry.add_to_hass(hass)
+
+    registers = _sample_registers()
+    registers.update(
+        {
+            31: 0xFFFF,
+            32: 0xFEF7,
+            33: 0xFFFF,
+            34: 0xFFDB,
+            35: 0xFFFF,
+            36: 0xFF64,
+            37: 0xFFFF,
+            38: 0xFFB9,
+        }
+    )
+
+    with patch(
+        "custom_components.kws306l.modbus.KwsModbusClient.async_read_blocks",
+        new=AsyncMock(return_value=registers),
+    ):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+    assert hass.states.get("sensor.meter_total_reactive_power").state == "-26.5"
+    assert hass.states.get("sensor.meter_phase_a_reactive_power").state == "-3.7"
+    assert hass.states.get("sensor.meter_phase_b_reactive_power").state == "-15.6"
+    assert hass.states.get("sensor.meter_phase_c_reactive_power").state == "-7.1"
+
+
+def test_reactive_power_decoder_uses_signed_int32():
+    """Reactive power register decoders should interpret two's complement values."""
+    reactive_decoder = next(
+        description.decoder
+        for description in SENSOR_DESCRIPTIONS
+        if description.key == "phase_a_reactive_power"
+    )
+
+    assert reactive_decoder({33: 0xFFFF, 34: 0xFFDA}) == -3.8
