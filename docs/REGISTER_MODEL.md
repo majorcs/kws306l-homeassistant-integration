@@ -52,17 +52,17 @@ This is a local working document. It is intentionally kept out of Git content.
 | temperature | 60 | 1 | R | sensor | °C | measurement | divisor 1 |
 | runtime_minutes | 61 | 1 | R | sensor | min | total | raw minutes |
 | alarm_mask | 62 | 1 | R | sensor | - | - | bitmask sensor |
-| meter_status | 63 | 1 | RW | sensor | - | - | enum: off/on |
-| overvoltage_limit | 64 | 1 | RW | sensor | V | - | divisor 10 |
-| undervoltage_limit | 65 | 1 | RW | sensor | V | - | divisor 10 |
-| overcurrent_limit | 66 | 1 | RW | sensor | A | - | divisor 100 |
-| overpower_limit | 67 | 1 | RW | sensor | kW | - | divisor 100 |
-| voltage_imbalance_limit | 68 | 1 | RW | sensor | V | - | divisor 10 |
-| current_imbalance_limit | 69 | 1 | RW | sensor | A | - | divisor 10 |
-| countdown_minutes | 70 | 1 | RW | sensor | min | - | raw minutes |
-| screensaver_minutes | 71 | 1 | RW | sensor | min | - | raw minutes |
-| overtemperature_limit | 72 | 1 | RW | sensor | °C | - | raw integer |
-| overelectricity_limit | 73 | 2 | RW | sensor | kWh | - | raw integer scale from workbook |
+| meter_status | 63 | 1 | RW | switch | - | - | editable config entity |
+| overvoltage_limit | 64 | 1 | RW | number | V | - | divisor 10 |
+| undervoltage_limit | 65 | 1 | RW | number | V | - | divisor 10 |
+| overcurrent_limit | 66 | 1 | RW | number | A | - | divisor 100 |
+| overpower_limit | 67 | 1 | RW | number | kW | - | divisor 100 |
+| voltage_imbalance_limit | 68 | 1 | RW | number | V | - | divisor 10 |
+| current_imbalance_limit | 69 | 1 | RW | number | A | - | divisor 10 |
+| countdown_minutes | 70 | 1 | RW | number | min | - | raw minutes |
+| screensaver_minutes | 71 | 1 | RW | number | min | - | raw minutes |
+| overtemperature_limit | 72 | 1 | RW | number | °C | - | raw integer |
+| overelectricity_limit | 73 | 2 | RW | number | kWh | - | raw integer scale from workbook |
 
 ## Write-only registers
 
@@ -76,4 +76,4 @@ This is a local working document. It is intentionally kept out of Git content.
 - reactive power registers `31..38` behave as signed 32-bit values on live hardware even though the workbook only documents register count and decimal scaling, not signedness
 - confirm `runtime` should use the Home Assistant `total` state class in minutes
 - confirm `overelectricity_limit` scaling, because the workbook shows `1` decimal metadata but the note is `kWh`
-- confirm whether threshold/config sensors should remain enabled by default or move to diagnostic-only defaults
+- writable non-communication registers are now exposed only as config entities, not duplicate sensors

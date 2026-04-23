@@ -5,7 +5,7 @@ from __future__ import annotations
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, Platform
 
 DOMAIN = "kws306l"
-PLATFORMS: tuple[Platform, ...] = (Platform.SENSOR,)
+PLATFORMS: tuple[Platform, ...] = (Platform.SENSOR, Platform.NUMBER, Platform.SWITCH)
 
 CONF_PROTOCOL = "protocol"
 CONF_SCAN_INTERVAL = "scan_interval"
@@ -25,7 +25,7 @@ SUPPORTED_PROTOCOLS = (PROTOCOL_TCP, PROTOCOL_SERIAL)
 
 MANUFACTURER = "KWS"
 MODEL = "KWS-306L"
-VERSION = "2026.04.22.1"
+VERSION = "2026.04.23.1"
 
 
 def build_unique_id(data: dict[str, object]) -> str:

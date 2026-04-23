@@ -53,8 +53,6 @@ ALARM_BITS: dict[int, str] = {
     7: "current_imbalance",
 }
 
-METER_STATUS_OPTIONS = ["off", "on", "unknown"]
-
 READ_BLOCKS: tuple[RegisterBlock, ...] = (
     RegisterBlock(start=12, count=1),
     RegisterBlock(start=14, count=61),
@@ -117,16 +115,6 @@ def decode_baud_rate_code(data: RegisterData) -> int:
 def decode_slave_address(data: RegisterData) -> int:
     """Decode the low byte from the combined communication register."""
     return _u16(data, 12) & 0xFF
-
-
-def decode_meter_status(data: RegisterData) -> str:
-    """Decode the meter output status as an enum-like string."""
-    raw = _u16(data, 63)
-    if raw == 0:
-        return "off"
-    if raw == 1:
-        return "on"
-    return "unknown"
 
 
 SENSOR_DESCRIPTIONS: tuple[KwsSensorDescription, ...] = (
@@ -489,124 +477,5 @@ SENSOR_DESCRIPTIONS: tuple[KwsSensorDescription, ...] = (
         decoder=decode_u16_scaled(62, 1, 0),
         entity_category=EntityCategory.DIAGNOSTIC,
         icon="mdi:alert-outline",
-    ),
-    KwsSensorDescription(
-        key="meter_status",
-        name="Meter status",
-        register=63,
-        register_count=1,
-        access="RW",
-        device_class=SensorDeviceClass.ENUM,
-        options=METER_STATUS_OPTIONS,
-        decoder=decode_meter_status,
-        entity_category=EntityCategory.DIAGNOSTIC,
-        icon="mdi:power",
-    ),
-    KwsSensorDescription(
-        key="overvoltage_limit",
-        name="Overvoltage limit",
-        register=64,
-        register_count=1,
-        access="RW",
-        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
-        device_class=SensorDeviceClass.VOLTAGE,
-        suggested_display_precision=1,
-        decoder=decode_u16_scaled(64, 10, 1),
-    ),
-    KwsSensorDescription(
-        key="undervoltage_limit",
-        name="Undervoltage limit",
-        register=65,
-        register_count=1,
-        access="RW",
-        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
-        device_class=SensorDeviceClass.VOLTAGE,
-        suggested_display_precision=1,
-        decoder=decode_u16_scaled(65, 10, 1),
-    ),
-    KwsSensorDescription(
-        key="overcurrent_limit",
-        name="Overcurrent limit",
-        register=66,
-        register_count=1,
-        access="RW",
-        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
-        device_class=SensorDeviceClass.CURRENT,
-        suggested_display_precision=2,
-        decoder=decode_u16_scaled(66, 100, 2),
-    ),
-    KwsSensorDescription(
-        key="overpower_limit",
-        name="Overpower limit",
-        register=67,
-        register_count=1,
-        access="RW",
-        native_unit_of_measurement=UnitOfPower.KILO_WATT,
-        device_class=SensorDeviceClass.POWER,
-        suggested_display_precision=2,
-        decoder=decode_u16_scaled(67, 100, 2),
-    ),
-    KwsSensorDescription(
-        key="voltage_imbalance_limit",
-        name="Voltage imbalance limit",
-        register=68,
-        register_count=1,
-        access="RW",
-        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
-        device_class=SensorDeviceClass.VOLTAGE,
-        suggested_display_precision=1,
-        decoder=decode_u16_scaled(68, 10, 1),
-    ),
-    KwsSensorDescription(
-        key="current_imbalance_limit",
-        name="Current imbalance limit",
-        register=69,
-        register_count=1,
-        access="RW",
-        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
-        device_class=SensorDeviceClass.CURRENT,
-        suggested_display_precision=1,
-        decoder=decode_u16_scaled(69, 10, 1),
-    ),
-    KwsSensorDescription(
-        key="countdown_minutes",
-        name="Countdown",
-        register=70,
-        register_count=1,
-        access="RW",
-        native_unit_of_measurement=UnitOfTime.MINUTES,
-        device_class=SensorDeviceClass.DURATION,
-        decoder=decode_u16_scaled(70, 1, 0),
-    ),
-    KwsSensorDescription(
-        key="screensaver_minutes",
-        name="Screensaver",
-        register=71,
-        register_count=1,
-        access="RW",
-        native_unit_of_measurement=UnitOfTime.MINUTES,
-        device_class=SensorDeviceClass.DURATION,
-        decoder=decode_u16_scaled(71, 1, 0),
-    ),
-    KwsSensorDescription(
-        key="overtemperature_limit",
-        name="Overtemperature limit",
-        register=72,
-        register_count=1,
-        access="RW",
-        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        device_class=SensorDeviceClass.TEMPERATURE,
-        decoder=decode_u16_scaled(72, 1, 0),
-    ),
-    KwsSensorDescription(
-        key="overelectricity_limit",
-        name="Overelectricity limit",
-        register=73,
-        register_count=2,
-        access="RW",
-        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
-        device_class=SensorDeviceClass.ENERGY,
-        suggested_display_precision=1,
-        decoder=decode_u32_scaled(73, 1, 0),
     ),
 )

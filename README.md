@@ -8,7 +8,7 @@ KWS306L is a Home Assistant custom integration for the KWS-306L energy meter fam
 - Modbus TCP and Modbus RTU support
 - Multiple devices supported in parallel
 - One Home Assistant device per configured meter
-- Native sensor entities for voltages, currents, powers, energy totals, temperature, status, and readable protection limits
+- Native sensor entities for measurements and diagnostics, plus editable config entities for writable meter settings
 - HACS-compatible repository layout
 
 ## Installation
@@ -42,13 +42,11 @@ Run `./scripts/run_local_homeassistant.sh` to start a local Home Assistant insta
 
 ## Entities
 
-The integration exposes the readable KWS306L meter values as native sensor entities, including:
+The integration exposes:
 
-- per-phase voltage and current
-- active, reactive, and apparent power
-- per-phase and total energy
-- frequency, temperature, and runtime
-- device status, alarm mask, and readable threshold values
+- `sensor` entities for read-only measurements and diagnostics such as voltage, current, power, energy, frequency, temperature, runtime, alarm mask, baud-rate code, and slave address
+- `number` entities in the configuration section for writable limits and timers
+- a `switch` entity in the configuration section for meter output state
 
 ## Releases
 

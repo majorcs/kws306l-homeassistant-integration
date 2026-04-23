@@ -102,7 +102,20 @@ async def test_sensor_entities_are_created_and_decoded(hass):
     assert hass.states.get("sensor.meter_frequency").state == "50.0"
     assert hass.states.get("sensor.meter_total_energy").state == "123.45"
     assert hass.states.get("sensor.meter_runtime").state == "120"
-    assert hass.states.get("sensor.meter_meter_status").state == "on"
+    assert hass.states.get("sensor.meter_baud_rate_code").state == "2"
+    assert hass.states.get("sensor.meter_slave_address").state == "3"
+
+    assert hass.states.get("sensor.meter_meter_status") is None
+    assert hass.states.get("sensor.meter_overvoltage_limit") is None
+    assert hass.states.get("sensor.meter_undervoltage_limit") is None
+    assert hass.states.get("sensor.meter_overcurrent_limit") is None
+    assert hass.states.get("sensor.meter_overpower_limit") is None
+    assert hass.states.get("sensor.meter_voltage_imbalance_limit") is None
+    assert hass.states.get("sensor.meter_current_imbalance_limit") is None
+    assert hass.states.get("sensor.meter_countdown") is None
+    assert hass.states.get("sensor.meter_screensaver") is None
+    assert hass.states.get("sensor.meter_overtemperature_limit") is None
+    assert hass.states.get("sensor.meter_overelectricity_limit") is None
 
     alarm_state = hass.states.get("sensor.meter_alarm_mask")
     assert alarm_state.state == "33"

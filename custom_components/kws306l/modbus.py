@@ -68,6 +68,10 @@ class KwsModbusClient:
         """Read one or more register blocks."""
         return await self._hass.async_add_executor_job(self._read_blocks_sync, blocks)
 
+    async def async_write_registers(self, address: int, values: list[int]) -> None:
+        """Write one or more holding registers."""
+        await self._hass.async_add_executor_job(self._write_registers_sync, address, values)
+
     async def async_close(self) -> None:
         """Close the client connection."""
         await self._hass.async_add_executor_job(self._close_sync)
@@ -149,6 +153,47 @@ class KwsModbusClient:
                 return client.read_holding_registers(
                     address=address,
                     count=count,
+                    unit=self._params.slave_id,
+                )
+
+    def _write_registers_sync(self, address: int, values: list[int]) -> None:
+        client = self._ensure_connected()
+
+        try:
+            result = self._write_registers(client, address, values)
+            if result.isError():
+                raise KwsModbusError(
+                    f"Write failed for address {address} values {values}: {result!s}"
+                )
+        except Exception as err:
+            self._close_sync()
+            if isinstance(err, KwsModbusError):
+                raise
+            raise KwsModbusError(str(err)) from err
+
+    def _write_registers(
+        self,
+        client: ModbusTcpClient | ModbusSerialClient,
+        address: int,
+        values: list[int],
+    ):
+        try:
+            return client.write_registers(
+                address=address,
+                values=values,
+                device_id=self._params.slave_id,
+            )
+        except TypeError:
+            try:
+                return client.write_registers(
+                    address=address,
+                    values=values,
+                    slave=self._params.slave_id,
+                )
+            except TypeError:
+                return client.write_registers(
+                    address=address,
+                    values=values,
                     unit=self._params.slave_id,
                 )
 

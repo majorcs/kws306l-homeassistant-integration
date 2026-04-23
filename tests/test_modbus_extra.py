@@ -137,6 +137,49 @@ def test_read_blocks_sync_wraps_unexpected_errors(hass):
     client._close_sync.assert_called_once()
 
 
+def test_write_registers_falls_back_to_unit_kwarg(hass):
+    """Register writes should support legacy pymodbus keyword arguments."""
+    fake = Mock()
+    fake.write_registers.side_effect = [
+        TypeError("unsupported keyword"),
+        TypeError("unsupported keyword"),
+        "fallback-result",
+    ]
+    client = KwsModbusClient(hass, KwsConnectionParams(protocol="tcp", host="192.0.2.47", slave_id=4))
+
+    result = client._write_registers(fake, 71, [1])
+
+    assert result == "fallback-result"
+    assert fake.write_registers.call_args_list[0].kwargs == {
+        "address": 71,
+        "values": [1],
+        "device_id": 4,
+    }
+    assert fake.write_registers.call_args_list[1].kwargs == {
+        "address": 71,
+        "values": [1],
+        "slave": 4,
+    }
+    assert fake.write_registers.call_args_list[2].kwargs == {
+        "address": 71,
+        "values": [1],
+        "unit": 4,
+    }
+
+
+def test_write_registers_sync_wraps_unexpected_errors(hass):
+    """Unexpected write exceptions should be wrapped as KwsModbusError."""
+    client = KwsModbusClient(hass, KwsConnectionParams(protocol="tcp", host="192.0.2.48", slave_id=1))
+    client._ensure_connected = Mock(return_value=Mock())
+    client._write_registers = Mock(side_effect=RuntimeError("boom"))
+    client._close_sync = Mock()
+
+    with pytest.raises(KwsModbusError, match="boom"):
+        client._write_registers_sync(70, [30])
+
+    client._close_sync.assert_called_once()
+
+
 def test_close_sync_clears_existing_client(hass):
     """Closing should dispose of the cached client."""
     fake = Mock()

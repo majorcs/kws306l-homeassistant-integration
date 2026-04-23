@@ -10,7 +10,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .const import CONF_SCAN_INTERVAL, DOMAIN, build_unique_id
 from .modbus import KwsModbusClient, KwsModbusError
-from .register_map import READ_BLOCKS
+from .register_map import READ_BLOCKS, RegisterBlock
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,4 +34,26 @@ class Kws306lDataUpdateCoordinator(DataUpdateCoordinator[dict[int, int]]):
             return await self.client.async_read_blocks(READ_BLOCKS)
         except KwsModbusError as err:
             raise UpdateFailed(str(err)) from err
+
+    async def async_write_registers(
+        self,
+        address: int,
+        values: list[int],
+        *,
+        refresh_count: int | None = None,
+    ) -> None:
+        """Write one or more registers and refresh the cached state for them."""
+        await self.client.async_write_registers(address, values)
+
+        refreshed = await self.client.async_read_blocks(
+            (RegisterBlock(start=address, count=refresh_count or len(values)),)
+        )
+
+        updated_data = dict(self.data)
+        updated_data.update(refreshed)
+        self.async_set_updated_data(updated_data)
+
+    async def async_write_register(self, address: int, value: int) -> None:
+        """Write a single register and refresh the cached state for it."""
+        await self.async_write_registers(address, [value], refresh_count=1)
 
