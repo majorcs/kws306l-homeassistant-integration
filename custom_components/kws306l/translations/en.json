@@ -21,6 +21,7 @@
         "title": "Configure Modbus RTU",
         "data": {
           "serial_port": "Serial port",
+          "baudrate": "Baud rate",
           "slave_id": "Slave ID",
           "scan_interval": "Scan interval (seconds)",
           "name": "Name"

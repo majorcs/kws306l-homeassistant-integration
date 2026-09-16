@@ -38,7 +38,7 @@ Run `./scripts/run_local_homeassistant.sh` to start a local Home Assistant insta
 3. Search for **KWS306L**.
 4. Choose the protocol and enter the device settings:
    - Modbus TCP: host, port, slave ID, scan interval
-   - Modbus RTU: serial port, slave ID, scan interval
+   - Modbus RTU: serial port, baud rate, slave ID, scan interval
 
 ## Entities
 

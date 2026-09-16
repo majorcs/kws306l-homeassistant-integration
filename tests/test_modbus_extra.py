@@ -30,7 +30,7 @@ async def test_async_close_uses_executor(hass):
 
 
 def test_connection_params_from_mapping_supports_serial():
-    """Serial mappings should populate the serial port field."""
+    """Serial mappings should populate the serial port field and default the baud rate."""
     params = KwsConnectionParams.from_mapping(
         {
             "protocol": "serial",
@@ -43,6 +43,22 @@ def test_connection_params_from_mapping_supports_serial():
     assert params.protocol == "serial"
     assert params.serial_port == "/dev/ttyUSB1"
     assert params.port == 502
+    assert params.baudrate == 9600
+
+
+def test_connection_params_from_mapping_honors_custom_baud_rate():
+    """A baud rate supplied in the mapping should override the default."""
+    params = KwsConnectionParams.from_mapping(
+        {
+            "protocol": "serial",
+            "serial_port": "/dev/ttyUSB1",
+            "baudrate": 19200,
+            "slave_id": 5,
+            "scan_interval": 30,
+        }
+    )
+
+    assert params.baudrate == 19200
 
 
 def test_get_client_creates_tcp_client(hass):

@@ -10,6 +10,7 @@ from homeassistant.const import CONF_HOST, CONF_PORT
 from pymodbus.client import ModbusSerialClient, ModbusTcpClient
 
 from .const import (
+    CONF_BAUDRATE,
     CONF_PROTOCOL,
     CONF_SERIAL_PORT,
     CONF_SLAVE_ID,
@@ -49,6 +50,7 @@ class KwsConnectionParams:
             host=str(data[CONF_HOST]) if data.get(CONF_HOST) else None,
             port=int(data.get(CONF_PORT, DEFAULT_PORT)),
             serial_port=str(data[CONF_SERIAL_PORT]) if data.get(CONF_SERIAL_PORT) else None,
+            baudrate=int(data.get(CONF_BAUDRATE, DEFAULT_SERIAL_BAUDRATE)),
         )
 
 

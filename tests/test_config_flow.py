@@ -10,6 +10,7 @@ from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.kws306l.const import (
+    CONF_BAUDRATE,
     CONF_PROTOCOL,
     CONF_SCAN_INTERVAL,
     CONF_SERIAL_PORT,
@@ -84,6 +85,7 @@ async def test_serial_config_flow_aborts_for_duplicate(hass):
         data={
             CONF_PROTOCOL: PROTOCOL_SERIAL,
             CONF_SERIAL_PORT: "/dev/ttyUSB0",
+            CONF_BAUDRATE: 9600,
             CONF_SLAVE_ID: 1,
             CONF_SCAN_INTERVAL: 30,
         },
@@ -105,6 +107,7 @@ async def test_serial_config_flow_aborts_for_duplicate(hass):
         result["flow_id"],
         {
             CONF_SERIAL_PORT: "/dev/ttyUSB0",
+            CONF_BAUDRATE: "9600",
             CONF_SLAVE_ID: 1,
             CONF_SCAN_INTERVAL: 30,
             CONF_NAME: "",
@@ -113,6 +116,41 @@ async def test_serial_config_flow_aborts_for_duplicate(hass):
 
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "already_configured"
+
+
+async def test_serial_config_flow_stores_custom_baud_rate(hass):
+    """A non-default baud rate should be stored as an int on the entry."""
+    with (
+        patch(
+            "custom_components.kws306l.config_flow.KwsModbusClient.async_validate_connection",
+            new=AsyncMock(return_value=None),
+        ),
+        patch(
+            "custom_components.kws306l.modbus.KwsModbusClient.async_read_blocks",
+            new=AsyncMock(return_value=_register_snapshot()),
+        ),
+    ):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": config_entries.SOURCE_USER},
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {CONF_PROTOCOL: PROTOCOL_SERIAL},
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_SERIAL_PORT: "/dev/ttyUSB3",
+                CONF_BAUDRATE: "19200",
+                CONF_SLAVE_ID: 4,
+                CONF_SCAN_INTERVAL: 30,
+                CONF_NAME: "",
+            },
+        )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["data"][CONF_BAUDRATE] == 19200
 
 
 async def test_options_flow_updates_scan_interval(hass):
@@ -190,6 +228,7 @@ async def test_serial_config_flow_shows_connection_error(hass):
             result["flow_id"],
             {
                 CONF_SERIAL_PORT: "/dev/ttyUSB1",
+                CONF_BAUDRATE: "9600",
                 CONF_SLAVE_ID: 2,
                 CONF_SCAN_INTERVAL: 30,
                 CONF_NAME: "",

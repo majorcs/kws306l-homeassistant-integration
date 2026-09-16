@@ -7,6 +7,7 @@ from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PORT, Platform
 DOMAIN = "kws306l"
 PLATFORMS: tuple[Platform, ...] = (Platform.SENSOR, Platform.NUMBER, Platform.SWITCH)
 
+CONF_BAUDRATE = "baudrate"
 CONF_PROTOCOL = "protocol"
 CONF_SCAN_INTERVAL = "scan_interval"
 CONF_SERIAL_PORT = "serial_port"
@@ -18,6 +19,8 @@ DEFAULT_SCAN_INTERVAL = 30
 DEFAULT_SERIAL_BAUDRATE = 9600
 DEFAULT_SLAVE_ID = 1
 DEFAULT_TIMEOUT = 3.0
+
+SERIAL_BAUD_RATES: tuple[int, ...] = (1200, 2400, 4800, 9600, 19200)
 
 PROTOCOL_TCP = "tcp"
 PROTOCOL_SERIAL = "serial"

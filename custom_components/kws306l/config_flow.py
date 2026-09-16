@@ -12,16 +12,19 @@ from homeassistant.core import callback
 from homeassistant.helpers import selector
 
 from .const import (
+    CONF_BAUDRATE,
     CONF_PROTOCOL,
     CONF_SCAN_INTERVAL,
     CONF_SERIAL_PORT,
     CONF_SLAVE_ID,
     DEFAULT_PORT,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_SERIAL_BAUDRATE,
     DEFAULT_SLAVE_ID,
     DOMAIN,
     PROTOCOL_SERIAL,
     PROTOCOL_TCP,
+    SERIAL_BAUD_RATES,
     SUPPORTED_PROTOCOLS,
     build_entry_title,
     build_unique_id,
@@ -35,6 +38,18 @@ def _protocol_selector() -> selector.SelectSelector:
             options=[
                 selector.SelectOptionDict(value=PROTOCOL_TCP, label="Modbus TCP"),
                 selector.SelectOptionDict(value=PROTOCOL_SERIAL, label="Modbus RTU (Serial)"),
+            ],
+            mode=selector.SelectSelectorMode.DROPDOWN,
+        )
+    )
+
+
+def _baud_rate_selector() -> selector.SelectSelector:
+    return selector.SelectSelector(
+        selector.SelectSelectorConfig(
+            options=[
+                selector.SelectOptionDict(value=str(rate), label=f"{rate} bps")
+                for rate in SERIAL_BAUD_RATES
             ],
             mode=selector.SelectSelectorMode.DROPDOWN,
         )
@@ -71,6 +86,10 @@ def _serial_schema(user_input: dict[str, Any] | None = None) -> vol.Schema:
     return vol.Schema(
         {
             vol.Required(CONF_SERIAL_PORT, default=user_input.get(CONF_SERIAL_PORT, "/dev/ttyUSB0")): str,
+            vol.Required(
+                CONF_BAUDRATE,
+                default=str(user_input.get(CONF_BAUDRATE, DEFAULT_SERIAL_BAUDRATE)),
+            ): _baud_rate_selector(),
             vol.Required(
                 CONF_SLAVE_ID,
                 default=user_input.get(CONF_SLAVE_ID, DEFAULT_SLAVE_ID),
@@ -136,6 +155,7 @@ class Kws306lConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
         if user_input is not None:
             payload = {CONF_PROTOCOL: PROTOCOL_SERIAL, **user_input}
+            payload[CONF_BAUDRATE] = int(payload[CONF_BAUDRATE])
             try:
                 await self._async_validate_payload(payload)
             except KwsModbusError:
