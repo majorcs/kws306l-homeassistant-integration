@@ -164,21 +164,205 @@ async def test_options_flow_updates_scan_interval(hass):
             CONF_PORT: DEFAULT_PORT,
             CONF_SLAVE_ID: 2,
             CONF_SCAN_INTERVAL: 30,
+            CONF_NAME: "",
+        },
+        options={},
+    )
+    entry.add_to_hass(hass)
+
+    with patch(
+        "custom_components.kws306l.config_flow.KwsModbusClient.async_validate_connection",
+        new=AsyncMock(return_value=None),
+    ):
+        result = await hass.config_entries.options.async_init(entry.entry_id)
+        assert result["type"] is FlowResultType.FORM
+
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            {
+                CONF_HOST: "192.0.2.25",
+                CONF_PORT: DEFAULT_PORT,
+                CONF_SLAVE_ID: 2,
+                CONF_SCAN_INTERVAL: 120,
+                CONF_NAME: "",
+            },
+        )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["data"] == {CONF_SCAN_INTERVAL: 120}
+    assert entry.data[CONF_SCAN_INTERVAL] == 120
+
+
+async def test_options_flow_reconfigures_tcp_connection(hass):
+    """The options flow should let TCP connection details be edited in place."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Meter",
+        unique_id=f"{PROTOCOL_TCP}:192.0.2.25:{DEFAULT_PORT}:2",
+        data={
+            CONF_PROTOCOL: PROTOCOL_TCP,
+            CONF_HOST: "192.0.2.25",
+            CONF_PORT: DEFAULT_PORT,
+            CONF_SLAVE_ID: 2,
+            CONF_SCAN_INTERVAL: 30,
+            CONF_NAME: "",
+        },
+        options={},
+    )
+    entry.add_to_hass(hass)
+
+    with patch(
+        "custom_components.kws306l.config_flow.KwsModbusClient.async_validate_connection",
+        new=AsyncMock(return_value=None),
+    ):
+        result = await hass.config_entries.options.async_init(entry.entry_id)
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            {
+                CONF_HOST: "192.0.2.99",
+                CONF_PORT: 1502,
+                CONF_SLAVE_ID: 7,
+                CONF_SCAN_INTERVAL: 60,
+                CONF_NAME: "Rack meter",
+            },
+        )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert entry.data[CONF_HOST] == "192.0.2.99"
+    assert entry.data[CONF_PORT] == 1502
+    assert entry.data[CONF_SLAVE_ID] == 7
+    assert entry.data[CONF_SCAN_INTERVAL] == 60
+    assert entry.title == "Rack meter"
+    assert entry.unique_id == f"{PROTOCOL_TCP}:192.0.2.99:1502:7"
+
+
+async def test_options_flow_reconfigures_serial_connection(hass):
+    """The options flow should let serial connection details be edited in place."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Meter",
+        unique_id=f"{PROTOCOL_SERIAL}:/dev/ttyUSB0:1",
+        data={
+            CONF_PROTOCOL: PROTOCOL_SERIAL,
+            CONF_SERIAL_PORT: "/dev/ttyUSB0",
+            CONF_BAUDRATE: 9600,
+            CONF_SLAVE_ID: 1,
+            CONF_SCAN_INTERVAL: 30,
+            CONF_NAME: "",
+        },
+        options={},
+    )
+    entry.add_to_hass(hass)
+
+    with patch(
+        "custom_components.kws306l.config_flow.KwsModbusClient.async_validate_connection",
+        new=AsyncMock(return_value=None),
+    ):
+        result = await hass.config_entries.options.async_init(entry.entry_id)
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            {
+                CONF_SERIAL_PORT: "/dev/ttyUSB5",
+                CONF_BAUDRATE: "19200",
+                CONF_SLAVE_ID: 1,
+                CONF_SCAN_INTERVAL: 30,
+                CONF_NAME: "",
+            },
+        )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert entry.data[CONF_SERIAL_PORT] == "/dev/ttyUSB5"
+    assert entry.data[CONF_BAUDRATE] == 19200
+    assert entry.unique_id == f"{PROTOCOL_SERIAL}:/dev/ttyUSB5:1"
+
+
+async def test_options_flow_shows_connection_error(hass):
+    """A failed validation should keep the existing entry data untouched."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Meter",
+        unique_id=f"{PROTOCOL_TCP}:192.0.2.25:{DEFAULT_PORT}:2",
+        data={
+            CONF_PROTOCOL: PROTOCOL_TCP,
+            CONF_HOST: "192.0.2.25",
+            CONF_PORT: DEFAULT_PORT,
+            CONF_SLAVE_ID: 2,
+            CONF_SCAN_INTERVAL: 30,
+            CONF_NAME: "",
+        },
+        options={},
+    )
+    entry.add_to_hass(hass)
+
+    with patch(
+        "custom_components.kws306l.config_flow.KwsModbusClient.async_validate_connection",
+        new=AsyncMock(side_effect=KwsModbusError("cannot connect")),
+    ):
+        result = await hass.config_entries.options.async_init(entry.entry_id)
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            {
+                CONF_HOST: "192.0.2.100",
+                CONF_PORT: DEFAULT_PORT,
+                CONF_SLAVE_ID: 2,
+                CONF_SCAN_INTERVAL: 30,
+                CONF_NAME: "",
+            },
+        )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"] == {"base": "cannot_connect"}
+    assert entry.data[CONF_HOST] == "192.0.2.25"
+
+
+async def test_options_flow_rejects_duplicate_unique_id(hass):
+    """Reconfiguring into another entry's identity should be rejected."""
+    other = MockConfigEntry(
+        domain=DOMAIN,
+        title="Other meter",
+        unique_id=f"{PROTOCOL_TCP}:192.0.2.50:{DEFAULT_PORT}:9",
+        data={
+            CONF_PROTOCOL: PROTOCOL_TCP,
+            CONF_HOST: "192.0.2.50",
+            CONF_PORT: DEFAULT_PORT,
+            CONF_SLAVE_ID: 9,
+            CONF_SCAN_INTERVAL: 30,
+            CONF_NAME: "",
+        },
+    )
+    other.add_to_hass(hass)
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Meter",
+        unique_id=f"{PROTOCOL_TCP}:192.0.2.25:{DEFAULT_PORT}:2",
+        data={
+            CONF_PROTOCOL: PROTOCOL_TCP,
+            CONF_HOST: "192.0.2.25",
+            CONF_PORT: DEFAULT_PORT,
+            CONF_SLAVE_ID: 2,
+            CONF_SCAN_INTERVAL: 30,
+            CONF_NAME: "",
         },
         options={},
     )
     entry.add_to_hass(hass)
 
     result = await hass.config_entries.options.async_init(entry.entry_id)
-    assert result["type"] is FlowResultType.FORM
-
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
-        {CONF_SCAN_INTERVAL: 120},
+        {
+            CONF_HOST: "192.0.2.50",
+            CONF_PORT: DEFAULT_PORT,
+            CONF_SLAVE_ID: 9,
+            CONF_SCAN_INTERVAL: 30,
+            CONF_NAME: "",
+        },
     )
 
-    assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["data"] == {CONF_SCAN_INTERVAL: 120}
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"] == {"base": "already_configured"}
+    assert entry.data[CONF_HOST] == "192.0.2.25"
 
 
 async def test_tcp_config_flow_shows_connection_error(hass):
