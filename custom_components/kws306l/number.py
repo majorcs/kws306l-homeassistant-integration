@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
 
 from homeassistant.components.number import NumberEntity, NumberEntityDescription, NumberMode
 from homeassistant.config_entries import ConfigEntry
@@ -228,7 +229,7 @@ class Kws306lNumber(Kws306lCoordinatorEntity, NumberEntity):
                 ((raw_values[0] << 16) | raw_values[1]) / self.entity_description.scale
             )
 
-        if scaled_value != value:
+        if not math.isclose(scaled_value, value, rel_tol=0, abs_tol=1e-6):
             raise HomeAssistantError("Only supported step values may be written")
 
         try:

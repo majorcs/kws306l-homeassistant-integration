@@ -212,3 +212,51 @@ async def test_overelectricity_number_writes_two_registers(hass):
 
     coordinator.async_write_registers.assert_awaited_once_with(73, [1, 4464], refresh_count=2)
     assert hass.states.get("number.meter_overelectricity_limit").state == "70000.0"
+
+
+async def test_number_write_tolerates_floating_point_drift(hass):
+    """A value with float representation noise should still be accepted."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Meter",
+        data={
+            CONF_PROTOCOL: PROTOCOL_TCP,
+            CONF_HOST: "192.0.2.33",
+            CONF_PORT: DEFAULT_PORT,
+            CONF_SLAVE_ID: 3,
+            CONF_SCAN_INTERVAL: 30,
+        },
+    )
+    entry.add_to_hass(hass)
+
+    with patch(
+        "custom_components.kws306l.modbus.KwsModbusClient.async_read_blocks",
+        new=AsyncMock(return_value=_sample_registers()),
+    ):
+        assert await hass.config_entries.async_setup(entry.entry_id)
+        await hass.async_block_till_done()
+
+    coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+
+    async def _write_side_effect(address: int, values: list[int], *, refresh_count: int | None = None) -> None:
+        updated = dict(coordinator.data)
+        for offset, register in enumerate(values):
+            updated[address + offset] = register
+        coordinator.async_set_updated_data(updated)
+
+    coordinator.async_write_registers = AsyncMock(side_effect=_write_side_effect)
+
+    # 0.1 * 3 == 0.30000000000000004 in floating point, not the clean 0.3
+    # an automation template might produce this for a scale-10 register.
+    noisy_value = 0.1 * 3
+
+    await hass.services.async_call(
+        "number",
+        "set_value",
+        {"entity_id": "number.meter_voltage_imbalance_limit", "value": noisy_value},
+        blocking=True,
+    )
+    await hass.async_block_till_done()
+
+    coordinator.async_write_registers.assert_awaited_once_with(68, [3], refresh_count=1)
+    assert hass.states.get("number.meter_voltage_imbalance_limit").state == "0.3"
