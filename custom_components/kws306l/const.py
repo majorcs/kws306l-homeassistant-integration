@@ -28,7 +28,7 @@ SUPPORTED_PROTOCOLS = (PROTOCOL_TCP, PROTOCOL_SERIAL)
 
 MANUFACTURER = "KWS"
 MODEL = "KWS-306L"
-VERSION = "2026.04.23.1"
+VERSION = "2026.09.16.1"
 
 
 def build_unique_id(data: dict[str, object]) -> str:
