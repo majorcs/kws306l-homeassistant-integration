@@ -40,6 +40,13 @@ Run `./scripts/run_local_homeassistant.sh` to start a local Home Assistant insta
    - Modbus TCP: host, port, slave ID, scan interval
    - Modbus RTU: serial port, baud rate, slave ID, scan interval
 
+## Reconfiguration
+
+Click **Configure** on the integration entry to change connection settings
+(host/port or serial port/baud rate, slave ID, scan interval, name) without
+removing and re-adding the device. The new settings are validated against the
+device before they are applied.
+
 ## Entities
 
 The integration exposes:

@@ -40,11 +40,21 @@
   "options": {
     "step": {
       "init": {
-        "title": "KWS306L options",
+        "title": "Reconfigure KWS306L",
         "data": {
-          "scan_interval": "Scan interval (seconds)"
+          "host": "Host",
+          "port": "Port",
+          "serial_port": "Serial port",
+          "baudrate": "Baud rate",
+          "slave_id": "Slave ID",
+          "scan_interval": "Scan interval (seconds)",
+          "name": "Name"
         }
       }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the device",
+      "already_configured": "This device is already configured"
     }
   }
 }

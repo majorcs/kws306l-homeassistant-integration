@@ -184,27 +184,56 @@ class Kws306lConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 class Kws306lOptionsFlow(config_entries.OptionsFlow):
-    """Handle options for KWS306L."""
+    """Handle options for KWS306L, including full connection reconfiguration."""
 
     def __init__(self, config_entry) -> None:
         self._config_entry = config_entry
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None):
-        """Manage the integration options."""
-        if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
+        """Let the user edit connection settings and scan interval in place."""
+        entry = self._config_entry
+        protocol = entry.data[CONF_PROTOCOL]
+        errors: dict[str, str] = {}
+        payload: dict[str, Any] = {}
 
-        current = self._config_entry.options.get(
-            CONF_SCAN_INTERVAL,
-            self._config_entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+        if user_input is not None:
+            payload = dict(user_input)
+            if protocol == PROTOCOL_SERIAL:
+                payload[CONF_BAUDRATE] = int(payload[CONF_BAUDRATE])
+
+            updated_data = {**entry.data, **payload, CONF_PROTOCOL: protocol}
+            new_unique_id = build_unique_id(updated_data)
+
+            if any(
+                other.entry_id != entry.entry_id and other.unique_id == new_unique_id
+                for other in self.hass.config_entries.async_entries(DOMAIN)
+            ):
+                errors["base"] = "already_configured"
+            else:
+                client = KwsModbusClient(self.hass, KwsConnectionParams.from_mapping(updated_data))
+                try:
+                    await client.async_validate_connection()
+                except KwsModbusError:
+                    errors["base"] = "cannot_connect"
+                finally:
+                    await client.async_close()
+
+            if not errors:
+                self.hass.config_entries.async_update_entry(
+                    entry,
+                    data=updated_data,
+                    title=build_entry_title(updated_data),
+                    unique_id=new_unique_id,
+                )
+                return self.async_create_entry(
+                    title="", data={CONF_SCAN_INTERVAL: updated_data[CONF_SCAN_INTERVAL]}
+                )
+
+        current = dict(entry.data)
+        current[CONF_SCAN_INTERVAL] = entry.options.get(
+            CONF_SCAN_INTERVAL, entry.data.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
         )
-        return self.async_show_form(
-            step_id="init",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(CONF_SCAN_INTERVAL, default=current): selector.NumberSelector(
-                        selector.NumberSelectorConfig(min=1, max=3600, mode=selector.NumberSelectorMode.BOX)
-                    )
-                }
-            ),
-        )
+        current.update(payload)
+
+        schema = _tcp_schema(current) if protocol == PROTOCOL_TCP else _serial_schema(current)
+        return self.async_show_form(step_id="init", data_schema=schema, errors=errors)
