@@ -57,4 +57,10 @@ The integration exposes:
 
 ## Releases
 
-Release tags use the format `YYYY.MM.DD.SEQ`.
+Release tags use the format `YYYY.MM.DD.SEQ`. `main` is a protected branch —
+changes, including release version bumps, land via pull request. See
+[CONTRIBUTING.md](CONTRIBUTING.md) for the required checks and release steps.
+
+## License
+
+MIT — see [LICENSE](LICENSE).

@@ -77,3 +77,4 @@ This is a local working document. It is intentionally kept out of Git content.
 - confirm `runtime` should use the Home Assistant `total` state class in minutes
 - confirm `overelectricity_limit` scaling, because the workbook shows `1` decimal metadata but the note is `kWh`
 - writable non-communication registers are now exposed only as config entities, not duplicate sensors
+- the `baud_rate_code` sensor decodes register 12 (the device's own stored baud rate); this is independent of the config/options flow's serial `baudrate` field, which only sets the speed pymodbus uses on the host side. The two must match for serial communication to work at all — changing one does not change the other
