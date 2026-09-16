@@ -8,6 +8,9 @@ docs/IMPLEMENTATION_TODO.md
 .manual-homeassistant-venv/
 docs/kws306l-prompt.md
 docs/kws306l-prompt.md~
+docs/REGISTER-12.md
+KWS-306L User Manual.pdf
+KWS-306L modbus.xlsx
 __pycache__/
 *.pyc
 *~
