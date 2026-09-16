@@ -1,6 +1,7 @@
 # KWS306L register model
 
-This is a local working document. It is intentionally kept out of Git content.
+This document is committed and public — it's the working reference for the
+register catalog implemented in `custom_components/kws306l/register_map.py`.
 
 ## Source summary
 

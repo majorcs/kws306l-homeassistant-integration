@@ -38,6 +38,7 @@ repository admins.
   if `validate-hacs` stops showing up on a PR, check
   `gh workflow list --all` for a `disabled_inactivity` state before assuming
   something else broke.
-- `docs/*.md` (except `docs/REGISTER_MODEL.md`, which predates the ignore
-  rule and is already public) are local-only working notes excluded via
-  `.gitignore` — they aren't meant to be committed.
+- Most `docs/*.md` files are local-only working notes excluded via
+  `.gitignore` and aren't meant to be committed. `docs/REGISTER_MODEL.md` is
+  the exception — it's committed and public, and is the working reference
+  for `custom_components/kws306l/register_map.py`.
